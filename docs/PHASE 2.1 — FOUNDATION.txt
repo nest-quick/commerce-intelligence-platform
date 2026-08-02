@@ -1,0 +1,156 @@
+[REPOSITORY INITIALIZATION]
+Repository
+- Use one monorepo.
+- Repository name: commerce-intelligence-platform
+- Default branch: main
+- Foundation branch: feature/foundation
+
+Top-Level Structure
+- backend/src
+- backend/tests
+- frontend
+- infrastructure/docker
+- infrastructure/database
+- docs/architecture
+- docs/development
+- docs/deployment
+- scripts
+- .github/workflows
+
+Root Files
+- README.md
+- .gitignore
+- .editorconfig
+- .env.example
+- docker-compose.yml
+- LICENSE
+
+Git Rules
+- Never commit directly to main.
+- Never commit .env or secrets.
+- Commit .env.example with placeholders.
+- Use Conventional Commits.
+- Initial commit:
+  chore: initialize repository structure
+
+GitHub
+- Push main and feature/foundation.
+- Protect main using a branch ruleset.
+- Require pull requests.
+- Block force pushes and branch deletion.
+- Add required CI checks after the pipeline exists.
+
+Technology Baseline
+- Backend: .NET 10 LTS
+- Frontend: stable Angular release with compatible Node version
+- Database: PostgreSQL
+- Local orchestration: Docker Compose
+
+[SOLUTION CREATION]
+
+Goal
+- Create the backend solution foundation before adding projects.
+
+Files
+- CommerceIntelligencePlatform.sln
+- global.json
+- Directory.Build.props
+- Directory.Packages.props
+
+global.json
+- Pins the .NET SDK version for all developers.
+
+Directory.Build.props
+- Shared build settings.
+- TargetFramework = net10.0
+- Nullable enabled.
+- ImplicitUsings enabled.
+- Central compiler configuration.
+
+Directory.Packages.props
+- Centralized NuGet package management.
+- All package versions managed in one file.
+
+Verification
+- dotnet sln list
+- dotnet build
+
+Commit
+- chore: create solution foundation
+
+[PROJECT TEMPLATES]
+
+Production Projects
+- Commerce.Api → ASP.NET Core Web API
+- Commerce.Application → Class Library
+- Commerce.Domain → Class Library
+- Commerce.Infrastructure → Class Library
+- Commerce.Shared → Class Library
+
+Test Projects
+- Commerce.Api.Tests → xUnit
+- Commerce.Application.Tests → xUnit
+- Commerce.Domain.Tests → xUnit
+- Commerce.Infrastructure.Tests → xUnit
+- Commerce.IntegrationTests → xUnit
+
+Production Responsibilities
+- Api → Controllers, Middleware, Authentication, DI, Swagger.
+- Application → Commands, Queries, DTOs, Validation, Interfaces.
+- Domain → Entities, Value Objects, Domain Rules.
+- Infrastructure → EF Core, PostgreSQL, Shopify, AI, External Services.
+- Shared → Result, Error, Pagination, Constants.
+
+Project Reference Rules
+- Api → Application, Infrastructure, Shared
+- Application → Domain, Shared
+- Infrastructure → Application, Domain, Shared
+- Domain → Shared
+
+Test References
+- Api.Tests → Api
+- Application.Tests → Application
+- Domain.Tests → Domain
+- Infrastructure.Tests → Infrastructure
+- IntegrationTests → Api
+
+[FOUNDATION PROJECT STRUCTURE]
+
+Commerce.Api
+- Common
+- Controllers
+- Extensions
+- HealthChecks
+- Middleware
+- OpenApi
+
+Commerce.Application
+- Common/Behaviors
+- Common/Exceptions
+- Common/Interfaces
+- Common/Mapping
+- Common/Models
+- Common/Validation
+
+Commerce.Domain
+- Common
+
+Commerce.Infrastructure
+- DependencyInjection
+- Persistence/Configurations
+- Persistence/Migrations
+- Persistence/Seed
+
+Commerce.Shared
+- Errors
+- Pagination
+- Results
+
+Rules
+- Create feature folders only when implementing that feature.
+- Keep API thin.
+- Keep Domain independent.
+- Infrastructure handles technical implementations.
+- Application contains use cases and orchestration.
+- Shared stays minimal.
+- Git doesn't track empty directories, so use .gitkeep temporarily.

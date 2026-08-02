@@ -1,0 +1,86 @@
+# ============================================================
+# Development stage
+# Used by Docker Compose for local development with dotnet watch
+# ============================================================
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS development
+
+WORKDIR /workspace/backend
+
+ENV ASPNETCORE_ENVIRONMENT=Development
+ENV ASPNETCORE_URLS=http://+:8080
+ENV DOTNET_USE_POLLING_FILE_WATCHER=true
+ENV DOTNET_WATCH_RESTART_ON_RUDE_EDIT=true
+
+EXPOSE 8080
+
+CMD ["dotnet", "watch", "--project", "src/Commerce.Api/Commerce.Api.csproj", "run", "--no-launch-profile"]
+
+
+# ============================================================
+# Restore stage
+# Copies dependency files separately to maximize Docker caching
+# ============================================================
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS restore
+
+WORKDIR /workspace/backend
+
+COPY backend/global.json ./
+COPY backend/Directory.Build.props ./
+COPY backend/Directory.Packages.props ./
+COPY backend/CommerceIntelligencePlatform.sln ./
+
+COPY backend/src/Commerce.Api/Commerce.Api.csproj src/Commerce.Api/
+COPY backend/src/Commerce.Application/Commerce.Application.csproj src/Commerce.Application/
+COPY backend/src/Commerce.Domain/Commerce.Domain.csproj src/Commerce.Domain/
+COPY backend/src/Commerce.Infrastructure/Commerce.Infrastructure.csproj src/Commerce.Infrastructure/
+COPY backend/src/Commerce.Shared/Commerce.Shared.csproj src/Commerce.Shared/
+
+COPY backend/tests/Commerce.Api.Tests/Commerce.Api.Tests.csproj tests/Commerce.Api.Tests/
+COPY backend/tests/Commerce.Application.Tests/Commerce.Application.Tests.csproj tests/Commerce.Application.Tests/
+COPY backend/tests/Commerce.Domain.Tests/Commerce.Domain.Tests.csproj tests/Commerce.Domain.Tests/
+COPY backend/tests/Commerce.Infrastructure.Tests/Commerce.Infrastructure.Tests.csproj tests/Commerce.Infrastructure.Tests/
+COPY backend/tests/Commerce.IntegrationTests/Commerce.IntegrationTests.csproj tests/Commerce.IntegrationTests/
+
+RUN dotnet restore CommerceIntelligencePlatform.sln
+
+
+# ============================================================
+# Build stage
+# ============================================================
+FROM restore AS build
+
+COPY backend/. .
+
+RUN dotnet build src/Commerce.Api/Commerce.Api.csproj \
+    --configuration Release \
+    --no-restore
+
+
+# ============================================================
+# Publish stage
+# ============================================================
+FROM build AS publish
+
+RUN dotnet publish src/Commerce.Api/Commerce.Api.csproj \
+    --configuration Release \
+    --output /app/publish \
+    --no-build \
+    /p:UseAppHost=false
+
+
+# ============================================================
+# Production runtime stage
+# Contains only the ASP.NET Core runtime and published files
+# ============================================================
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+
+WORKDIR /app
+
+ENV ASPNETCORE_URLS=http://+:8080
+ENV ASPNETCORE_ENVIRONMENT=Production
+
+EXPOSE 8080
+
+COPY --from=publish /app/publish .
+
+ENTRYPOINT ["dotnet", "Commerce.Api.dll"]

@@ -1,0 +1,135 @@
+name: commerce-intelligence-platform
+
+services:
+  commerce-api:
+    container_name: commerce-api
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.api
+      target: development
+    working_dir: /workspace/backend
+    command:
+      - dotnet
+      - watch
+      - --project
+      - src/Commerce.Api/Commerce.Api.csproj
+      - run
+      - --no-launch-profile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+      DOTNET_WATCH_RESTART_ON_RUDE_EDIT: "true"
+      ConnectionStrings__DefaultConnection: >-
+        Host=postgres;
+        Port=5432;
+        Database=${POSTGRES_DB};
+        Username=${POSTGRES_USER};
+        Password=${POSTGRES_PASSWORD}
+    ports:
+      - "${API_PORT:-8080}:8080"
+    volumes:
+      - ./backend:/workspace/backend
+      - api_nuget_cache:/root/.nuget/packages
+      - api_obj_cache:/workspace/backend/src/Commerce.Api/obj
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - commerce-network
+    restart: unless-stopped
+
+  commerce-dashboard:
+    container_name: commerce-dashboard
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.angular
+      target: development
+    working_dir: /app
+    command:
+      - npm
+      - start
+      - --
+      - --host
+      - 0.0.0.0
+      - --port
+      - "4200"
+      - --poll
+      - "2000"
+    ports:
+      - "${FRONTEND_PORT:-4200}:4200"
+    volumes:
+      - ./frontend/commerce-dashboard:/app
+      - dashboard_node_modules:/app/node_modules
+      - dashboard_angular_cache:/app/.angular
+    depends_on:
+      - commerce-api
+    networks:
+      - commerce-network
+    restart: unless-stopped
+
+  postgres:
+    container_name: commerce-postgres
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - commerce-network
+    restart: unless-stopped
+
+  pgadmin:
+    container_name: commerce-pgadmin
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - commerce-network
+    restart: unless-stopped
+
+networks:
+  commerce-network:
+    name: commerce-network
+    driver: bridge
+
+volumes:
+  postgres_data:
+    name: commerce-postgres-data
+
+  pgadmin_data:
+    name: commerce-pgadmin-data
+
+  api_nuget_cache:
+    name: commerce-api-nuget-cache
+
+  api_obj_cache:
+    name: commerce-api-obj-cache
+
+  dashboard_node_modules:
+    name: commerce-dashboard-node-modules
+
+  dashboard_angular_cache:
+    name: commerce-dashboard-angular-cache
