@@ -4,6 +4,7 @@
 !.env.example
 secrets.json
 appsettings.Local.json
+appsettings.json
 
 # .NET
 **/bin/
