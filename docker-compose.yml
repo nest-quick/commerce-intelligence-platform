@@ -31,7 +31,12 @@ services:
     volumes:
       - ./backend:/workspace/backend
       - api_nuget_cache:/root/.nuget/packages
+
       - api_obj_cache:/workspace/backend/Commerce.Api/obj
+      - application_obj_cache:/workspace/backend/Commerce.Application/obj
+      - domain_obj_cache:/workspace/backend/Commerce.Domain/obj
+      - infrastructure_obj_cache:/workspace/backend/Commerce.Infrastructure/obj
+
     depends_on:
       postgres:
         condition: service_healthy
@@ -129,6 +134,15 @@ volumes:
 
   api_obj_cache:
     name: commerce-api-obj-cache
+
+  application_obj_cache:
+    name: commerce-application-obj-cache
+
+  domain_obj_cache:
+    name: commerce-domain-obj-cache
+
+  infrastructure_obj_cache:
+    name: commerce-infrastructure-obj-cache
 
   dashboard_node_modules:
     name: commerce-dashboard-node-modules

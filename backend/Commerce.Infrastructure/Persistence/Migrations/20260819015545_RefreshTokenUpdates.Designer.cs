@@ -3,6 +3,7 @@ using System;
 using Commerce.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Commerce.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260819015545_RefreshTokenUpdates")]
+    partial class RefreshTokenUpdates
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -57,8 +60,6 @@ namespace Commerce.Infrastructure.Persistence.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("MerchantId");
 
                     b.ToTable("Stores");
                 });
@@ -295,17 +296,6 @@ namespace Commerce.Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Commerce.Domain.Entities.Store", b =>
-                {
-                    b.HasOne("Commerce.Domain.Entities.Merchant", "Merchant")
-                        .WithMany("Stores")
-                        .HasForeignKey("MerchantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Merchant");
-                });
-
             modelBuilder.Entity("Commerce.Infrastructure.Identity.ApplicationUser", b =>
                 {
                     b.HasOne("Commerce.Domain.Entities.Merchant", "Merchant")
@@ -377,11 +367,6 @@ namespace Commerce.Infrastructure.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Commerce.Domain.Entities.Merchant", b =>
-                {
-                    b.Navigation("Stores");
                 });
 
             modelBuilder.Entity("Commerce.Infrastructure.Identity.ApplicationUser", b =>
