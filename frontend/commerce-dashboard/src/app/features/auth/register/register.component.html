@@ -1,0 +1,90 @@
+<div class="register-container">
+  <h1>Create Account</h1>
+
+  <form
+    [formGroup]="registerForm"
+    (ngSubmit)="onSubmit()">
+
+    <div>
+      <label for="merchantName">Merchant Name</label>
+
+      <input
+        id="merchantName"
+        type="text"
+        formControlName="merchantName">
+
+      @if (
+        registerForm.controls.merchantName.touched &&
+        registerForm.controls.merchantName.invalid
+      ) {
+        <p>Merchant name is required.</p>
+      }
+    </div>
+
+    <div>
+      <label for="email">Email</label>
+
+      <input
+        id="email"
+        type="email"
+        formControlName="email">
+
+      @if (
+        registerForm.controls.email.touched &&
+        registerForm.controls.email.hasError('required')
+      ) {
+        <p>Email is required.</p>
+      }
+
+      @if (
+        registerForm.controls.email.touched &&
+        registerForm.controls.email.hasError('email')
+      ) {
+        <p>Enter a valid email address.</p>
+      }
+    </div>
+
+    <div>
+      <label for="password">Password</label>
+
+      <input
+        id="password"
+        type="password"
+        formControlName="password">
+
+      @if (
+        registerForm.controls.password.touched &&
+        registerForm.controls.password.hasError('required')
+      ) {
+        <p>Password is required.</p>
+      }
+
+      @if (
+        registerForm.controls.password.touched &&
+        registerForm.controls.password.hasError('minlength')
+      ) {
+        <p>Password must be at least 6 characters.</p>
+      }
+    </div>
+
+    @if (errorMessage) {
+      <p>{{ errorMessage }}</p>
+    }
+
+    @if (registrationSuccessful) {
+      <p>Account created successfully.</p>
+    }
+
+    <button
+      type="submit"
+      [disabled]="isSubmitting">
+
+      @if (isSubmitting) {
+        Creating account...
+      } @else {
+        Create Account
+      }
+
+    </button>
+  </form>
+</div>
