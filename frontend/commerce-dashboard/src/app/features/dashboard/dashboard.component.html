@@ -1,0 +1,16 @@
+<h1>Dashboard</h1>
+
+<p>You are authenticated.</p>
+
+<button
+  type="button"
+  (click)="logout()"
+  [disabled]="isLoggingOut">
+
+  @if (isLoggingOut) {
+    Logging out...
+  } @else {
+    Logout
+  }
+
+</button>
